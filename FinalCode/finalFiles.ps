@@ -1,0 +1,2822 @@
+%!PS-Adobe-3.0
+%%Title: GameScreen.java, ImageItem.java, SendScreen.java, SizeScreen.java, Tile.java, WelcomeActivity.java, activity_email.xml, activity_game.xml, activity_welcome.xml
+%%For: Theodore Taylor D'Ambrosio
+%%Creator: a2ps version 4.14
+%%CreationDate: Sat Dec 17 03:12:36 2016
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Portrait
+%%Pages: 20
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 842 def
+/sw 595 def
+/llx 24 def
+/urx 571 def
+/ury 818 def
+/lly 24 def
+/#copies 1 def
+/th 20.000000 def
+/fnfs 15 def
+/bfs 11.199836 def
+/cw 6.719901 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   747.029046 th add
+def
+/pmw 0 def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+] def
+/y [
+  pmh ph add 0 mul ph add
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1) 1
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.content.ClipData;) p n
+(import) K
+( android.content.DialogInterface;) p n
+(import) K
+( android.content.Intent;) p n
+(import) K
+( android.graphics.Bitmap;) p n
+(import) K
+( android.os.Bundle;) p n
+(import) K
+( android.support.v7.app.AlertDialog;) p n
+(import) K
+( android.support.v7.app.AppCompatActivity;) p n
+(import) K
+( android.util.DisplayMetrics;) p n
+(import) K
+( android.view.DragEvent;) p n
+(import) K
+( android.view.View;) p n
+(import) K
+( android.widget.Button;) p n
+(import) K
+( android.widget.GridLayout;) p n
+(import) K
+( android.widget.ImageView;) p n
+(import) K
+( android.widget.Toast;) p n
+(import) K
+( java.util.ArrayList;) p n
+(import) K
+( java.util.Collections;) p n
+() N
+(/**) C n
+( * Created by nedtaylor on 12/8/16.) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(GameScreen) L
+( ) p
+(extends) K
+( AppCompatActivity ) p
+(implements) K
+( View.OnDragListene) p n
+(r, View.OnLongClickListener, View.OnClickListener {) N
+() N
+() N
+(    ) S
+(/**) C n
+(     * the grid layout the image views will populate) N
+(     */) N
+(    ) p
+(private) K
+( GridLayout layout;) p n
+(    ) S
+(/**) C n
+(     * the arrayList of bitmaps in their unscrambled order) N
+(     */) N
+(    ) p
+(private) K
+( ArrayList<Tile> original;) p n
+(    ) S
+(/**) C n
+(     * the arrayList of bitmaps after they have been re-arranged) N
+(     */) N
+(    ) p
+(private) K
+( ArrayList<Tile> scramble;) p n
+(    ) S
+(/**) C n
+(     * the 2D array of Tile objects) N
+(     */) N
+(    ) p
+(private) K
+( Tile[][] tilearray;) p n
+(    ) S
+(/**) C n
+(     * the 2D array of imageViews that actually show the user the image) N
+(     */) N
+(    ) p
+(private) K
+( ImageView[][] iv;) p n
+(    ) S
+(/**) C n
+(     * the dimensions of the grid) N
+(     */) N
+(    ) p
+(private) K
+( ) p
+(int) k
+( numCells;) p n
+(    ) S
+(/**) C n
+(     * the help button that displays the instructions) N
+(     */) N
+(    ) p
+(private) K
+( Button help;) p n
+(    ) S
+(/**) C n
+(     * the quit button that solves the puzzle for a user) N
+(     */) N
+(    ) p
+(private) K
+( Button quit;) p n
+(    ) S
+(/**) C n
+(     * the home button that sends the user back to the WelcomeActivity) N
+(     */) N
+(    ) p
+(private) K
+( Button home;) p n
+() N
+(    ) S
+(/**) C n
+(     * This method displays the original state of the Screen, i.e. the) N
+(GameScreen.java) (Page 1/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (1/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (2) 2
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(     * first screen the user sees) C n
+(     *) N
+(     * @param savedInstanceState) N
+(     */) N
+(    @Override) p n
+(    ) S
+(protected) K
+( ) p
+(void) k
+( onCreate\(Bundle savedInstanceState\) {) p n
+(        super.onCreate\(savedInstanceState\);) N
+() N
+(        setContentView\(R.layout.activity_game\);) S
+(//stretch if bitmaps don't take w) c n
+(hole screen) N
+() p n
+() N
+(        ) S
+(//get dimensions from size screen) c n
+(        numCells = getIntent\(\).getIntExtra\(") p
+(size) str
+(", 0 \);) p n
+() N
+(        iv = ) S
+(new) K
+( ImageView[numCells][numCells];) p n
+(        tilearray = ) S
+(new) K
+( Tile[numCells][numCells];) p n
+() N
+(        ) S
+(int) k
+( count = 0;) p n
+() N
+() N
+(        ) S
+(//set parameters of grid layouts) c n
+(        layout = \(GridLayout\) findViewById\(R.id.grid\);) p n
+() N
+(        layout.setColumnCount\(numCells\);) N
+(        layout.setRowCount\(numCells\);) N
+(        layout.setId\(count\);) N
+(        layout.setAlignmentMode\(GridLayout.ALIGN_BOUNDS\);) N
+(        layout.setRowOrderPreserved\() S
+(false) k
+(\);) p n
+(        layout.setColumnOrderPreserved\() S
+(false) k
+(\);) p n
+(        layout.setOnDragListener\() S
+(this) k
+(\);) p n
+() N
+(        original = ) S
+(new) K
+( ArrayList<Tile>\(\);) p n
+(        scramble = ) S
+(new) K
+( ArrayList<Tile>\(\);) p n
+() N
+(        ImageView img;) N
+(        Bitmap b = ) S
+(null) k
+(;) p n
+() N
+(        ) S
+(//) c n
+(        original = ImageItem.bm;) p n
+() N
+(        ) S
+(//get the image scrambled) c n
+(        ) p
+(for) K
+(\() p
+(int) k
+( i = 0; i < original.size\(\); i++\){) p n
+(            scramble.add\(i, original.get\(i\)\);) N
+(        }) N
+() N
+(        Collections.shuffle\(scramble\);) N
+() N
+(        DisplayMetrics displaymetrics = ) S
+(new) K
+( DisplayMetrics\(\);) p n
+(        getWindowManager\(\).getDefaultDisplay\(\).getMetrics\(displaymetrics\);) N
+() N
+(        ) S
+(int) k
+( width = displaymetrics.widthPixels;) p n
+() N
+(        ) S
+(int) k
+( bmWidth = width / numCells;) p n
+(        ) S
+(int) k
+( usefulHeight = bmWidth * \(scramble.get\(0\).getBitmap\(\).getHeight\(\)/sc) p n
+(ramble.get\(0\).getBitmap\(\).getWidth\(\)\);) N
+() N
+(        ) S
+(int) k
+( c = 0;) p n
+() N
+(        ) S
+(//set grid layout of image views) c n
+(        ) p
+(for) K
+(\() p
+(int) k
+( i = 0; i < layout.getColumnCount\(\); i++\){) p n
+(            ) S
+(for) K
+(\() p
+(int) k
+( j = 0; j < layout.getRowCount\(\); j++\){) p n
+() N
+(                tilearray[i][j] = scramble.get\(c\);) N
+() N
+(                iv[i][j] = ) S
+(new) K
+( ImageView\() p
+(this) k
+(\);) p n
+(GameScreen.java) (Page 2/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (2/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 3
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(                iv[i][j].setImageBitmap\(tilearray[i][j].getBitmap\(\)\);) N
+() N
+(                iv[i][j].setScaleType\(ImageView.ScaleType.CENTER_CROP\);) N
+(                layout.addView\(iv[i][j], bmWidth, usefulHeight\);) N
+() N
+(                iv[i][j].setOnLongClickListener\() S
+(this) k
+(\);) p n
+() N
+(                c++;) N
+() N
+(            }) N
+(        }) N
+(        ) S
+(//set buttons and click listeners) c n
+(        home = \(Button\) findViewById\(R.id.home\);) p n
+(        home.setOnClickListener\() S
+(this) k
+(\);) p n
+(        help = \(Button\) findViewById\(R.id.Help\);) N
+(        help.setOnClickListener\() S
+(this) k
+(\);) p n
+(        quit = \(Button\) findViewById\(R.id.Quit\);) N
+(        quit.setOnClickListener\() S
+(this) k
+(\);) p n
+() N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * TAKEN FROM: http://patrick-iv.github.io/2015/05/04/drag-n-drop/) N
+(     *) N
+(     * Utilized to facilitate the user dragging a tile of the GridLayout) N
+(     * and dropping it) N
+(     *) N
+(     * @param v the View) N
+(     * @param event an Event that recognizes that a drag is happening) N
+(     * @return boolean true) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(boolean) k
+( onDrag\(View v, DragEvent event\) {) p n
+() N
+(        ) S
+(final) K
+( View view = \(View\) event.getLocalState\(\);) p n
+(        ) S
+(switch) K
+( \(event.getAction\(\)\) {) p n
+(            ) S
+(//while dragging to a given index) c n
+(            ) p
+(case) K
+( DragEvent.ACTION_DRAG_LOCATION:) p n
+() N
+(                ) S
+(if) K
+( \(view == v\)) p n
+(                    ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+() N
+(                ) S
+(final) K
+( ) p
+(int) k
+( index = calculateNewIndex\(event.getX\(\), event.getY\(\)\);) p n
+() N
+(                layout.removeView\(view\);) N
+() N
+(                layout.addView\(view, index\);) N
+(                ) S
+(break) K
+(;) p n
+() N
+(            ) S
+(//when the tile is dropped) c n
+(            ) p
+(case) K
+( DragEvent.ACTION_DROP:) p n
+() N
+(                view.setVisibility\(View.VISIBLE\);) N
+() N
+(                ) S
+(break) K
+(;) p n
+() N
+(            ) S
+(//when the drag has stopped) c n
+(            ) p
+(case) K
+( DragEvent.ACTION_DRAG_ENDED:) p n
+(                ) S
+(if) K
+( \(!event.getResult\(\)\) {) p n
+(                    view.setVisibility\(View.VISIBLE\);) N
+(                }) N
+(                ) S
+(//check for a win condition) c n
+(                ) p
+(if) K
+(\(isWon\(scramble\)\){) p n
+(                    Toast.makeText\() S
+(this) k
+(, ") p
+(YOU WIN!) str
+(", Toast.LENGTH_SHORT\).show\(\);) p n
+(                }) N
+(GameScreen.java) (Page 3/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (3/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (4) 4
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(                ) S
+(break) K
+(;) p n
+(            }) N
+() N
+(        ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * Taken from: http://patrick-iv.github.io/2015/05/04/drag-n-drop/) N
+(     *) N
+(     * Calculating the new index of the tile that is being dragged) N
+(     *) N
+(     * @param x the x value of the tile being dragged) N
+(     * @param y the y value of the tile being dragged) N
+(     * @return int - the new index of the tile after being dragged) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(int) k
+( calculateNewIndex\() p
+(float) k
+( x, ) p
+(float) k
+( y\) {) p n
+(        ) S
+(// calculate which column to move to) c n
+(        ) p
+(final) K
+( ) p
+(float) k
+( cellWidth = layout.getWidth\(\) / numCells;) p n
+(        ) S
+(final) K
+( ) p
+(int) k
+( column = \() p
+(int) k
+(\)\(x / cellWidth\);) p n
+() N
+(        ) S
+(// calculate which row to move to) c n
+(        ) p
+(final) K
+( ) p
+(float) k
+( cellHeight = layout.getHeight\(\) / numCells;) p n
+(        ) S
+(final) K
+( ) p
+(int) k
+( row = \() p
+(int) k
+(\)Math.floor\(y / cellHeight\);) p n
+() N
+(        ) S
+(// the items in the GridLayout is organized as a wrapping list) c n
+(        ) p
+(// and not as an actual grid, so this is how to get the new index) c n
+(        ) p
+(int) k
+( index = row * numCells + column;) p n
+(        ) S
+(if) K
+( \(index >= layout.getChildCount\(\)\) {) p n
+(            index = layout.getChildCount\(\) - 1;) N
+(        }) N
+() N
+(        ) S
+(return) K
+( index;) p n
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * Taken from: http://patrick-iv.github.io/2015/05/04/drag-n-drop/) N
+(     *) N
+(     * Recognizes a long click by the user \(or press with a finger\)) N
+(     * and raises the tile above the GridLayout, allowing for it to be) N
+(     * dragged) N
+(     *) N
+(     * @param v the View v) N
+(     * @return boolean true) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(boolean) k
+( onLongClick\(View v\) {) p n
+() N
+(        ) S
+(final) K
+( ClipData data = ClipData.newPlainText\("", ""\);) p n
+() N
+(        ) S
+(//elevates the tile off the grid layout and allows for it to be dragged ) c n
+(while being held down) N
+() p n
+(        View.DragShadowBuilder shadowBuilder = ) S
+(new) K
+( View.DragShadowBuilder\(v\);) p n
+() N
+(        v.startDrag\(data, shadowBuilder, v, 0\);) N
+(        v.setVisibility\(View.INVISIBLE\);) N
+() N
+(        ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+() N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * Checks if the array has been won or not) N
+(GameScreen.java) (Page 4/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (4/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5) 5
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(     *) C n
+(     * @param a the arrayList of the current board) N
+(     * @return true if a = original and false otherwise) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(boolean) k
+( isWon\(ArrayList<Tile> a\){) p n
+() N
+(        ) S
+(int) k
+( win = 0;) p n
+() N
+(        ) S
+(int) k
+( count = 0;) p n
+(        ) S
+(int) k
+( bs = 0;) p n
+() N
+() N
+(        ) S
+(//if every index of the scrambled arrayList equals the same index of the) c n
+( original arraylist) N
+(        ) p
+(//return true) c n
+(        ) p
+(for) K
+(\() p
+(int) k
+( i = 0; i < numCells*numCells; i++\) {) p n
+() N
+(            ) S
+(if) K
+( \(a.get\(count\).getId\(\) != original.get\(count\).getId\(\)\) {) p n
+(                System.out.println\(a.get\(count\) + ") S
+( ) str
+(" + original.get\(count\).getI) p n
+(d\(\)\);) N
+(                ) S
+(return) K
+( ) p
+(false) k
+(;) p n
+(            }) N
+(            count++;) N
+(        }) N
+() N
+(        ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * Based on a button click, do different tasks) N
+(     *) N
+(     * @param v the View v) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(void) k
+( onClick\(View v\) {) p n
+() N
+(        ) S
+(//if button click = help, set alert dialog) c n
+(        ) p
+(if) K
+(\(v.getId\(\) == help.getId\(\)\){) p n
+() N
+(            AlertDialog alertDialog = ) S
+(new) K
+( AlertDialog.Builder\() p
+(this) k
+(\).create\(\);) p n
+(            alertDialog.setTitle\(") S
+(Help) str
+("\);) p n
+(            alertDialog.setMessage\(") S
+(You've made it to the game screen. Hold your finger down on an) str n
+(y tile you ) S
+(" +) p n
+(                    ") S
+(want to move and drag it to the cell desired. Good luck solving! Press QUIT to have the) str n
+( puzzle ) S
+(" +) p n
+(                    ") S
+(solved for you or press HOME to return to the home screen.) str
+("\);) p n
+(            alertDialog.setButton\(AlertDialog.BUTTON_NEUTRAL, ") S
+(OK) str
+(",) p n
+(                    ) S
+(new) K
+( DialogInterface.OnClickListener\(\) {) p n
+(                        ) S
+(public) K
+( ) p
+(void) k
+( onClick\(DialogInterface dialog, ) p
+(int) k
+( which\) {) p n
+(                            dialog.dismiss\(\);) N
+(                        }) N
+(                    }\);) N
+(            alertDialog.show\(\);) N
+() N
+(        }) N
+(        ) S
+(//if button click = home, go back to welcome screen) c n
+(        ) p
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == home.getId\(\)\){) p n
+() N
+(            Intent intent = ) S
+(new) K
+( Intent\() p
+(this) k
+(, WelcomeActivity.class\);) p n
+(            startActivity\(intent\);) N
+() N
+(        }) N
+(        ) S
+(//if button click = quit, solve the puzzle for them) c n
+(        ) p
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == quit.getId\(\)\){) p n
+() N
+(GameScreen.java) (Page 5/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (5/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (6) 6
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(            ) p
+(int) k
+( count = 0;) p n
+() N
+(            ) S
+(for) K
+(\() p
+(int) k
+( i = 0; i < numCells; i++\){) p n
+(                ) S
+(for) K
+(\() p
+(int) k
+( j = 0; j < numCells; j++\){) p n
+(                    iv[i][j].setImageBitmap\(original.get\(count\).getBitmap\(\)\);) N
+(                    count++;) N
+(                }) N
+(            }) N
+() N
+(        }) N
+() N
+(    }) N
+() N
+(}) N
+(GameScreen.java) (Page 6/6) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (6/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 7
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.graphics.Bitmap;) p n
+(import) K
+( android.provider.ContactsContract;) p n
+() N
+(import) K
+( java.util.ArrayList;) p n
+() N
+(/**) C n
+( * Created by nedtaylor on 12/13/16.) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(ImageItem) L
+( {) p n
+() N
+(    ) S
+(/**) C n
+(     * A static reference to an ArrayList of Tiles) N
+(     * that is being sent from the Size Screen to the Game Screen) N
+(     *  which contains the original, unscrambled sequence of) N
+(     *  Tile objects) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(static) K
+( ArrayList<Tile> bm = ) p
+(null) k
+(;) p n
+() N
+() N
+(}) N
+(ImageItem.java) (Page 1/1) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (7/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 8
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.app.Activity;) p n
+(import) K
+( android.content.Intent;) p n
+(import) K
+( android.net.Uri;) p n
+(import) K
+( android.os.Bundle;) p n
+(import) K
+( android.support.v7.app.AppCompatActivity;) p n
+(import) K
+( android.view.View;) p n
+(import) K
+( android.widget.Button;) p n
+(import) K
+( android.widget.EditText;) p n
+(import) K
+( android.widget.GridLayout;) p n
+(import) K
+( android.widget.RelativeLayout;) p n
+(import) K
+( android.widget.TextView;) p n
+(import) K
+( android.view.View.OnClickListener;) p n
+(/**) C n
+( * Created by Shayla Moore on 12/8/16.) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(SendScreen) L
+( ) p
+(extends) K
+( Activity ) p
+(implements) K
+( View.OnClickListener {) p n
+() N
+(    ) S
+(/**) C n
+(     * The method that populates the screen that the user sees upon its) N
+(     * creation.) N
+(     *) N
+(     * @param savedInstanceState) N
+(     */) N
+(    ) p
+(protected) K
+( ) p
+(void) k
+( onCreate\(Bundle savedInstanceState\) {) p n
+(        super.onCreate\(savedInstanceState\);) N
+(        setContentView\(R.layout.activity_email\);) N
+() N
+(        Button sendButton = \(Button\) findViewById\(R.id.send\);) N
+(        sendButton.setOnClickListener\() S
+(this) k
+(\);) p n
+() N
+(        Button back = \(Button\) findViewById\(R.id.backemail\);) N
+(        back.setOnClickListener\() S
+(this) k
+(\);) p n
+() N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * Method to determine which button was clicked and act accordingly) N
+(     *) N
+(     * @param v View v) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(void) k
+( onClick\(View v\) {) p n
+() N
+(        ) S
+(if) K
+(\(v.getId\(\) == R.id.send\){) p n
+(            Intent emailIntent = ) S
+(new) K
+( Intent\(Intent.ACTION_SEND\);) p n
+(            emailIntent.putExtra\(Intent.EXTRA_EMAIL, ) S
+(new) K
+( String[]{") p
+(   ) str
+("}\);) p n
+(            emailIntent.putExtra\(Intent.EXTRA_CC, ) S
+(new) K
+( String[]{") p
+(    ) str
+("}\);) p n
+(            emailIntent.putExtra\(Intent.EXTRA_SUBJECT, ") S
+(Here's an Image for Your scramble) str n
+(puzzle!) S
+("\);) p n
+(            emailIntent.putExtra\(Intent.EXTRA_TEXT, ") S
+(Download the Attachment for your scra) str n
+(mblepuzzle!) S
+("\);) p n
+() N
+(            emailIntent.setType\(") S
+(text/plain) str
+("\);) p n
+(            startActivity\(Intent.createChooser\(emailIntent, ") S
+(Choose your email client..) str
+(") p n
+(\)\);) N
+(        }) N
+(        ) S
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == R.id.backemail\){) p n
+(            Intent intent = ) S
+(new) K
+( Intent\() p
+(this) k
+(, WelcomeActivity.class\);) p n
+(            startActivity\(intent\);) N
+(        }) N
+() N
+(    }) N
+(}) S
+(SendScreen.java) (Page 1/1) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (8/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 9
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.content.Context;) p n
+(import) K
+( android.content.DialogInterface;) p n
+(import) K
+( android.content.Intent;) p n
+() N
+(import) K
+( android.net.Uri;) p n
+(import) K
+( android.os.Bundle;) p n
+(import) K
+( android.os.Environment;) p n
+(import) K
+( android.support.v7.app.AlertDialog;) p n
+(import) K
+( android.support.v7.app.AppCompatActivity;) p n
+(import) K
+( android.util.DisplayMetrics;) p n
+(import) K
+( android.view.View;) p n
+(import) K
+( android.widget.ArrayAdapter;) p n
+(import) K
+( android.widget.Button;) p n
+(import) K
+( android.widget.GridLayout;) p n
+(import) K
+( android.widget.GridLayout.LayoutParams;) p n
+(import) K
+( android.widget.ImageView;) p n
+(import) K
+( android.graphics.Bitmap;) p n
+(import) K
+( android.graphics.BitmapFactory;) p n
+() N
+(import) K
+( java.io.ByteArrayOutputStream;) p n
+(import) K
+( java.io.File;) p n
+(import) K
+( java.io.FileNotFoundException;) p n
+(import) K
+( java.io.FileOutputStream;) p n
+(import) K
+( java.io.InputStream;) p n
+(import) K
+( java.util.ArrayList;) p n
+(import) K
+( java.util.Collections;) p n
+() N
+() N
+(/**) C n
+( * Created by nedtaylor on 12/8/16.) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(SizeScreen) L
+( ) p
+(extends) K
+( AppCompatActivity ) p
+(implements) K
+( View.OnClickListener) p n
+( {) N
+(    ) S
+(/**) C n
+(     * button to choose a 3x3 board) N
+(     */) N
+(    ) p
+(private) K
+( Button b;) p n
+(    ) S
+(/**) C n
+(     * button to choose a 4x4 board) N
+(     */) N
+(    ) p
+(private) K
+( Button b2;) p n
+(    ) S
+(/**) C n
+(     * button to choose a 5x5 board) N
+(     */) N
+(    ) p
+(private) K
+( Button b3;) p n
+(    ) S
+(/**) C n
+(     * help button that sets an alert dialog) N
+(     */) N
+(    ) p
+(private) K
+( Button help;) p n
+(    ) S
+(/**) C n
+(     * button to go back to the welcome activity) N
+(     */) N
+(    ) p
+(private) K
+( Button back;) p n
+(    ) S
+(/**) C n
+(     * value to achieve entry into the gallery of photos) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(static) K
+( ) p
+(final) K
+( ) p
+(int) k
+( IMAGE_GALLERY_REQUEST = 20;) p n
+(    ) S
+(/**) C n
+(     * Bitmap to be parsed into chunks according to the difficulty) N
+(     * chosen) N
+(     */) N
+(    ) p
+(private) K
+( Bitmap image;) p n
+(    ) S
+(/**) C n
+(SizeScreen.java) (Page 1/5) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (9/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (2) 10
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(     * the difficulty results in either 3, 4, or 5) C n
+(     */) N
+(    ) p
+(private) K
+( ) p
+(int) k
+( numCols;) p n
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * the method that populates the screen as the user is navigated on to it,) N
+(     * centered on putting the buttons on the screen and setting onClickListener) N
+(s) N
+(     *) N
+(     * @param savedInstanceState) N
+(     */) N
+(    @Override) p n
+(    ) S
+(protected) K
+( ) p
+(void) k
+( onCreate\(Bundle savedInstanceState\) {) p n
+(        super.onCreate\(savedInstanceState\);) N
+() N
+(        GridLayout layout = ) S
+(new) K
+( GridLayout\() p
+(this) k
+(\);) p n
+() N
+(        setContentView\(layout\);) N
+() N
+(        ) S
+(int) k
+( count = 0;) p n
+() N
+(        ) S
+(//sets the buttons' text, id, and onClickListener) c n
+() p n
+(        b = ) S
+(new) K
+( Button\() p
+(this) k
+(\);) p n
+(        b.setOnClickListener\() S
+(this) k
+(\);) p n
+(        b.setText\(") S
+(3x3) str
+("\);) p n
+(        b.setId\(count+1\);) N
+(        layout.addView\(b\);) N
+() N
+(        b2 = ) S
+(new) K
+( Button\() p
+(this) k
+(\);) p n
+(        b2.setOnClickListener\() S
+(this) k
+(\);) p n
+(        b2.setText\(") S
+(4x4) str
+("\);) p n
+(        b2.setId\(count+2\);) N
+(        layout.addView\(b2\);) N
+() N
+(        b3 = ) S
+(new) K
+( Button\() p
+(this) k
+(\);) p n
+(        b3.setOnClickListener\() S
+(this) k
+(\);) p n
+(        b3.setText\(") S
+(5x5) str
+("\);) p n
+(        b3.setId\(count+3\);) N
+(        layout.addView\(b3\);) N
+() N
+(        help = ) S
+(new) K
+( Button\() p
+(this) k
+(\);) p n
+(        help.setOnClickListener\() S
+(this) k
+(\);) p n
+(        help.setText\(") S
+(Help) str
+("\);) p n
+(        help.setId\(count+4\);) N
+(        layout.addView\(help\);) N
+() N
+(        back = ) S
+(new) K
+( Button\() p
+(this) k
+(\);) p n
+(        back.setOnClickListener\() S
+(this) k
+(\);) p n
+(        back.setText\(") S
+(Back) str
+("\);) p n
+(        back.setId\(count + 5\);) N
+(        layout.addView\(back\);) N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * Method to find out which button was clicked and act accordingly) N
+(     *) N
+(     * @param v the View v) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(void) k
+( onClick\(View v\) {) p n
+() N
+(            ) S
+(if) K
+(\(v.getId\(\) == b.getId\(\)\) {) p n
+(                numCols = 3;) N
+(SizeScreen.java) (Page 2/5) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (10/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 11
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(                Intent photoIntent = ) p
+(new) K
+( Intent\(Intent.ACTION_PICK\);) p n
+(                File picDir = Environment.getExternalStoragePublicDirectory\(Envi) N
+(ronment.DIRECTORY_PICTURES\);) N
+(                String picturePath = picDir.getPath\(\);) N
+(                Uri data = Uri.parse\(picturePath\);) N
+(                photoIntent.setDataAndType\(data, ") S
+(image/*) str
+("\);) p n
+(                startActivityForResult\(photoIntent, IMAGE_GALLERY_REQUEST\);) N
+() N
+(            }) N
+(            ) S
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == b2.getId\(\)\) {) p n
+(                numCols = 4;) N
+(                Intent photoIntent = ) S
+(new) K
+( Intent\(Intent.ACTION_PICK\);) p n
+(                File picDir = Environment.getExternalStoragePublicDirectory\(Envi) N
+(ronment.DIRECTORY_PICTURES\);) N
+(                String picturePath = picDir.getPath\(\);) N
+(                Uri data = Uri.parse\(picturePath\);) N
+(                photoIntent.setDataAndType\(data, ") S
+(image/*) str
+("\);) p n
+(                startActivityForResult\(photoIntent, IMAGE_GALLERY_REQUEST\);) N
+(            }) N
+(            ) S
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == b3.getId\(\)\) {) p n
+(                numCols = 5;) N
+(                Intent photoIntent = ) S
+(new) K
+( Intent\(Intent.ACTION_PICK\);) p n
+(                File picDir = Environment.getExternalStoragePublicDirectory\(Envi) N
+(ronment.DIRECTORY_PICTURES\);) N
+(                String picturePath = picDir.getPath\(\);) N
+(                Uri data = Uri.parse\(picturePath\);) N
+(                photoIntent.setDataAndType\(data, ") S
+(image/*) str
+("\);) p n
+(                startActivityForResult\(photoIntent, IMAGE_GALLERY_REQUEST\);) N
+(            }) N
+(            ) S
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == help.getId\(\)\) {) p n
+() N
+(                AlertDialog alertDialog = ) S
+(new) K
+( AlertDialog.Builder\(SizeScreen.thi) p n
+(s\).create\(\);) N
+(                alertDialog.setTitle\(") S
+(Help) str
+("\);) p n
+(                alertDialog.setMessage\(") S
+(You have chosen to solve a puzzle! This screen will determ) str n
+(ine the difficulty you would) S
+(" +) p n
+(                        ") S
+( like to compete at\\nEasy: 3x3\\nMedium: 4x4\\nHard 5x5\\nThe next screen will be) str n
+( choosing your photo!) S
+("\);) p n
+(                alertDialog.setButton\(AlertDialog.BUTTON_NEUTRAL, ") S
+(OK) str
+(",) p n
+(                        ) S
+(new) K
+( DialogInterface.OnClickListener\(\) {) p n
+(                            ) S
+(public) K
+( ) p
+(void) k
+( onClick\(DialogInterface dialog, ) p
+(int) k
+( whic) p n
+(h\) {) N
+(                                dialog.dismiss\(\);) N
+(                            }) N
+(                        }\);) N
+(                alertDialog.show\(\);) N
+() N
+(            }) N
+(            ) S
+(else) K
+( ) p
+(if) K
+(\(v.getId\(\) == back.getId\(\)\){) p n
+(                Intent intent = ) S
+(new) K
+( Intent\() p
+(this) k
+(, WelcomeActivity.class\);) p n
+(                startActivity\(intent\);) N
+(            }) N
+() N
+() N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * This method accesses the camera gallery and upon the user choosing a phot) N
+(o,) N
+(     * it parses it into an appropriate number of bitmap pieces, and then sends ) N
+(that) N
+(     * arrayList to a static variable in ImageItem which is accessed in Game Scr) N
+(een) N
+(     *) N
+(     * @param requestCode requests access to gallery) N
+(SizeScreen.java) (Page 3/5) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (11/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (4) 12
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(     * @param resultCode contains whether or not the picture choosing was succes) C n
+(sful) N
+(     * @param data the data of the picture) N
+(     */) N
+(    @Override) p n
+(    ) S
+(protected) K
+( ) p
+(void) k
+( onActivityResult\() p
+(int) k
+( requestCode, ) p
+(int) k
+( resultCode, Intent data) p n
+(\) {) N
+() N
+(        DisplayMetrics d = ) S
+(new) K
+( DisplayMetrics\(\);) p n
+(        getWindowManager\(\).getDefaultDisplay\(\).getMetrics\(d\);) N
+() N
+() N
+(        ) S
+(//if) c n
+(        ) p
+(if) K
+(\(resultCode == RESULT_OK\){) p n
+(            ) S
+(//) c n
+(            ) p
+(if) K
+(\(requestCode == IMAGE_GALLERY_REQUEST\){) p n
+(                Uri imgData = data.getData\(\);) N
+(                InputStream input;) N
+() N
+(                ) S
+(try) K
+({) p n
+() N
+(                    input = getContentResolver\(\).openInputStream\(imgData\);) N
+(                    image = BitmapFactory.decodeStream\(input\);) N
+() N
+(                    ArrayList<Bitmap> test = ) S
+(new) K
+( ArrayList<>\(\);) p n
+(                    test.add\(image\);) N
+() N
+(                    ArrayList<Bitmap> array = chunkImage\(image, numCols\);) N
+(                    ArrayList<Tile> tileArray = ) S
+(new) K
+( ArrayList<>\(\);) p n
+() N
+(                    ) S
+(for) K
+(\() p
+(int) k
+( i = 0; i < numCols*numCols; i++\){) p n
+(                        Tile t = ) S
+(new) K
+( Tile\(array.get\(i\), i\);) p n
+(                        tileArray.add\(t\);) N
+(                    }) N
+() N
+(                    ImageItem.bm = tileArray;) N
+() N
+(                    Intent i = ) S
+(new) K
+( Intent\() p
+(this) k
+(, GameScreen.class\);) p n
+() N
+(                    i.putExtra\(") S
+(size) str
+(", numCols\);) p n
+(                    startActivity\(i\);) N
+() N
+(                }) S
+(catch) K
+(\(FileNotFoundException fo\){) p n
+(                    System.out.println\(") S
+(can't find image) str
+("\);) p n
+(                }) N
+(            }) N
+(        }) N
+(    }) N
+(    ) S
+(/**) C n
+(     *) N
+(     * Parses the bitmap into pieces based on the difficulty chosen by the) N
+(     * user and puts those pieces into an ArrayList<Bitmap>) N
+(     *) N
+(     * @param b the bitmap of the image) N
+(     * @param i a number associated with the difficulty the user chooses) N
+(     * @return the ArrayList<Bitmap> containing the parsed image) N
+(     */) N
+(    ) p
+(public) K
+( ArrayList<Bitmap> chunkImage\(Bitmap b, ) p
+(int) k
+( i\){) p n
+() N
+(        ArrayList<Bitmap> alb = ) S
+(new) K
+( ArrayList<>\( \() p
+(int) k
+(\) Math.pow\(i,2\)\);) p n
+() N
+(        Bitmap scale = Bitmap.createScaledBitmap\(b, b.getWidth\(\), b.getHeight\(\),) N
+( ) S
+(true) k
+(\);) p n
+() N
+(        ) S
+(int) k
+( chunkHeight = b.getHeight\(\)/i;) p n
+(        ) S
+(int) k
+( chunkWidth = b.getWidth\(\)/i;) p n
+(SizeScreen.java) (Page 4/5) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (12/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5) 13
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(        ) S
+(int) k
+( yc = 0;) p n
+() N
+(        ) S
+(for) K
+(\() p
+(int) k
+( x=0; x<i; x++\){) p n
+(            ) S
+(int) k
+( xc= 0;) p n
+(            ) S
+(for) K
+(\() p
+(int) k
+( y = 0; y < i; y++\){) p n
+() N
+(                alb.add\(Bitmap.createBitmap\(scale, xc, yc, chunkWidth, chunkHeig) N
+(ht\)\);) N
+(                xc += chunkWidth;) N
+(            }) N
+(            yc += chunkHeight;) N
+(        }) N
+(        ) S
+(return) K
+( alb;) p n
+(    }) N
+() N
+(}) N
+(SizeScreen.java) (Page 5/5) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (13/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 14
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.graphics.Bitmap;) p n
+(import) K
+( android.widget.ImageView;) p n
+() N
+(import) K
+( java.util.ArrayList;) p n
+() N
+(/**) C n
+( * Created by nedtaylor on 12/16/16.) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(Tile) L
+( {) p n
+() N
+(    ) S
+(/**) C n
+(     * instance for the bitmap of the Tile object) N
+(     */) N
+(    ) p
+(private) K
+( Bitmap b;) p n
+(    ) S
+(/**) C n
+(     * index of the Tile object) N
+(     */) N
+(    ) p
+(private) K
+( ) p
+(int) k
+( i;) p n
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * An overloaded constructor that populates a Tile object with a bitmap and ) N
+(an int) N
+(     *) N
+(     * @param bm Bitmap sent in) N
+(     * @param id int sent in) N
+(     */) N
+(    ) p
+(public) K
+( Tile\(Bitmap bm, ) p
+(int) k
+( id\){) p n
+(        this.b = bm;) N
+(        this.i = id;) N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * returns the bitmap of the Tile object) N
+(     * @return a Bitmap object associated with the Tile object) N
+(     */) N
+(    ) p
+(public) K
+( Bitmap getBitmap\(\){) p n
+(        ) S
+(return) K
+( this.b;) p n
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * returns the id of the Tile object) N
+(     * @return the int associated with the Tile object) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(int) k
+( getId\(\){) p n
+(        ) S
+(return) K
+( this.i;) p n
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * sets bitmap to a passed in parameter) N
+(     * @param bit the parameter to set the bitmap to) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(void) k
+( setBitmap\(Bitmap bit\){) p n
+(        this.b = bit;) N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     * sets the id instance field on the tile object) N
+(     * @param id the parameter to set the id to) N
+(     */) N
+(    ) p
+(public) K
+( ) p
+(void) k
+( setId\() p
+(int) k
+( id\){) p n
+(        this.i = id;) N
+(    }) N
+(Tile.java) (Page 1/2) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (14/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (2) 15
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+() N
+(}) N
+(Tile.java) (Page 2/2) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (15/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 16
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(package) K
+( com.example.nedtaylor.scramblegame;) p n
+() N
+(import) K
+( android.content.DialogInterface;) p n
+(import) K
+( android.content.Intent;) p n
+(import) K
+( android.graphics.Bitmap;) p n
+(import) K
+( android.graphics.BitmapFactory;) p n
+(import) K
+( android.net.Uri;) p n
+(import) K
+( android.os.Environment;) p n
+(import) K
+( android.provider.MediaStore;) p n
+(import) K
+( android.support.v7.app.AlertDialog;) p n
+(import) K
+( android.support.v7.app.AppCompatActivity;) p n
+(import) K
+( android.os.Bundle;) p n
+(import) K
+( android.view.View;) p n
+(import) K
+( android.widget.Button;) p n
+(import) K
+( android.widget.Gallery;) p n
+(import) K
+( android.widget.ImageView;) p n
+() N
+(import) K
+( java.io.File;) p n
+(import) K
+( java.io.FileNotFoundException;) p n
+(import) K
+( java.io.InputStream;) p n
+() N
+() N
+(/**) C n
+( * This class represents the first screen of our application: the Welcome Screen) N
+( */) N
+() p n
+(public) K
+( ) p
+(class) K
+( ) p
+(WelcomeActivity) L
+( ) p
+(extends) K
+( AppCompatActivity ) p
+(implements) K
+( View.OnClickLis) p n
+(tener {) N
+() N
+() N
+(    ) S
+(/**) C n
+(     * used to access the camera if "take a picture" is selected) N
+(     */) N
+(    ) p
+(static) K
+( ) p
+(final) K
+( ) p
+(int) k
+( REQUEST_IMAGE_CAPTURE = 1;) p n
+() N
+(    ) S
+(/**) C n
+(     * Populates the WelcomeActivity screen according to the activity_welcome xm) N
+(l file) N
+(     *) N
+(     * @param savedInstanceState) N
+(     */) N
+(    @Override) p n
+(    ) S
+(protected) K
+( ) p
+(void) k
+( onCreate\(Bundle savedInstanceState\) {) p n
+(        super.onCreate\(savedInstanceState\);) N
+(        setContentView\(R.layout.activity_welcome\);) N
+() N
+(        Button b = \(Button\) findViewById\(R.id.button\);) N
+(        Button b2 = \(Button\) findViewById\(R.id.button2\);) N
+(        Button b3 = \(Button\) findViewById\(R.id.button3\);) N
+(        Button b4 = \(Button\) findViewById\(R.id.button4\);) N
+(        b4.setOnClickListener\() S
+(this) k
+(\);) p n
+() N
+(    }) N
+() N
+(    ) S
+(/**) C n
+(     *) N
+(     * Based on which button was clicked, either access the camera) N
+(     * or navigate to a different screen) N
+(     *) N
+(     * @param v the View v) N
+(     */) N
+(    @Override) p n
+(    ) S
+(public) K
+( ) p
+(void) k
+( onClick\(View v\){) p n
+() N
+(        ) S
+(switch) K
+( \(v.getId\(\)\){) p n
+(            ) S
+(case) K
+( R.id.button:) p n
+(WelcomeActivity.java) (Page 1/2) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (16/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (2) 17
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(                Intent intent = ) S
+(new) K
+( Intent\() p
+(this) k
+(, SizeScreen.class\);) p n
+(                startActivity\(intent\);) N
+(                ) S
+(break) K
+(;) p n
+() N
+(            ) S
+(case) K
+( R.id.button2:) p n
+() N
+(                Intent intent2 = ) S
+(new) K
+( Intent\() p
+(this) k
+(, SendScreen.class\);) p n
+(                startActivity\(intent2\);) N
+(                ) S
+(break) K
+(;) p n
+() N
+(            ) S
+(case) K
+( R.id.button3:) p n
+() N
+(                AlertDialog alertDialog = ) S
+(new) K
+( AlertDialog.Builder\(WelcomeActivit) p n
+(y.this\).create\(\);) N
+(                alertDialog.setTitle\(") S
+(Help) str
+("\);) p n
+(                alertDialog.setMessage\(") S
+(This is the Welcome Screen of the Scrambler! You have tw) str n
+(o options at this point: ) S
+(" +) p n
+(                ") S
+(do you want to solve a puzzle or send a picture to your friend? Solving a puzzle will bring you) str n
+( to the ) S
+(" +) p n
+(                        ") S
+(next screen where you pick the difficulty of your puzzle, while sending a picture ) str n
+(will bring you) S
+(" +) p n
+(                        ") S
+(to your gallery of pictures where you can select which photo to send!) str
+("\);) p n
+(                alertDialog.setButton\(AlertDialog.BUTTON_NEUTRAL, ") S
+(OK) str
+(",) p n
+(                        ) S
+(new) K
+( DialogInterface.OnClickListener\(\) {) p n
+(                            ) S
+(public) K
+( ) p
+(void) k
+( onClick\(DialogInterface dialog, ) p
+(int) k
+( whic) p n
+(h\) {) N
+(                                dialog.dismiss\(\);) N
+(                            }) N
+(                        }\);) N
+(                alertDialog.show\(\);) N
+(                ) S
+(break) K
+(;) p n
+() N
+(            ) S
+(case) K
+( R.id.button4:) p n
+() N
+(                Intent takePictureIntent = ) S
+(new) K
+( Intent\(MediaStore.ACTION_IMAGE_CA) p n
+(PTURE\);) N
+(                ) S
+(if) K
+( \(takePictureIntent.resolveActivity\(getPackageManager\(\)\) != ) p
+(nu) k n
+(ll) S
+(\) {) p n
+(                    startActivityForResult\(takePictureIntent, REQUEST_IMAGE_CAPT) N
+(URE\);) N
+(                }) N
+(        }) N
+(    }) N
+() N
+(}) N
+(WelcomeActivity.java) (Page 2/2) (Dec 17, 16 3:11) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (17/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 18
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<?xml version="1.0" encoding="utf-8"?>) p n
+(<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android") N
+(    android:layout_width="match_parent") N
+(    android:layout_height="wrap_content">) N
+() N
+(    <EditText) N
+(        android:layout_height="wrap_content") N
+(        android:inputType="textPersonName") N
+(        android:text="Directions for Sending the Email:") N
+(        android:ems="10") N
+(        android:id="@+id/editText") N
+(        android:layout_marginTop="25dp") N
+(        android:layout_width="match_parent") N
+(        android:layout_alignParentTop="true") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_alignParentEnd="true") N
+(        android:textAppearance="@android:style/TextAppearance.Material.Large.Inv) N
+(erse" />) N
+() N
+(    <EditText) N
+(        android:layout_width="match_parent") N
+(        android:layout_height="wrap_content") N
+(        android:inputType="textMultiLine") N
+(        android:ems="10") N
+(        android:id="@+id/editText2") N
+(        android:layout_marginTop="20dp") N
+(        android:text="Click the &quot;Send Email&quot; button and choose the Ema) N
+(il Client of your choice. Then click &quot;Choose Attachment&quot; to send an im) N
+(age to another user through their email that you'd like them to solve a puzzle o) N
+(f!") N
+(        android:layout_below="@+id/editText") N
+(        android:layout_centerHorizontal="true" />) N
+() N
+(    <Button) N
+(        android:text="Send Email") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/send") N
+(        android:layout_weight="1") N
+(        android:layout_below="@+id/editText2") N
+(        android:layout_centerHorizontal="true") N
+(        android:layout_marginTop="28dp" />) N
+() N
+(    <Button) N
+(        android:text="Back") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/backemail") N
+(        android:layout_alignParentBottom="true") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentStart="true") N
+(        android:layout_marginLeft="22dp") N
+(        android:layout_marginStart="22dp" />) N
+() N
+(</RelativeLayout>) S
+(activity_email.xml) (Page 1/1) (Dec 17, 16 3:12) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (18/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 19
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<?xml version="1.0" encoding="utf-8"?>) p n
+(<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android") N
+(    android:layout_width="match_parent") N
+(    android:layout_height="match_parent") N
+(    android:id="@+id/relativelayout") N
+(    android:orientation="vertical">) N
+() N
+(    <Button) N
+(        android:text="Home") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignParentBottom="true") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentStart="true") N
+(        android:layout_marginBottom="29dp") N
+(        android:id="@+id/home" />) N
+() N
+(    <Button) N
+(        android:text="Quit") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:layout_alignBottom="@+id/Help") N
+(        android:layout_alignParentRight="true") N
+(        android:layout_alignParentEnd="true") N
+(        android:layout_alignParentBottom="true") N
+(        android:layout_marginRight="22dp") N
+(        android:layout_marginEnd="22dp") N
+(        android:id="@+id/Quit" />) N
+() N
+(    <GridLayout) N
+(        android:layout_width="match_parent") N
+(        android:layout_height="match_parent") N
+(        android:layout_above="@+id/home") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentStart="true") N
+(        android:layout_marginBottom="19dp") N
+(        android:id="@+id/grid">) N
+() N
+(    </GridLayout>) N
+() N
+(    <Button) N
+(        android:text="Help") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/Help") N
+(        android:layout_below="@+id/grid") N
+(        android:layout_centerHorizontal="true") N
+(        android:layout_alignParentBottom="true"/>) N
+(</RelativeLayout>) N
+(activity_game.xml) (Page 1/1) (Dec 17, 16 3:12) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (19/20) (Saturday December 17, 2016) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 20
+%%BeginPageSetup
+/pagesave save def
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 4.703931 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(<?xml version="1.0" encoding="utf-8"?>) p n
+(<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android") N
+(    xmlns:tools="http://schemas.android.com/tools") N
+(    android:id="@+id/activity_welcome") N
+(    android:layout_width="match_parent") N
+(    android:layout_height="match_parent") N
+(    android:paddingBottom="@dimen/activity_vertical_margin") N
+(    android:paddingLeft="@dimen/activity_horizontal_margin") N
+(    android:paddingRight="@dimen/activity_horizontal_margin") N
+(    android:paddingTop="@dimen/activity_vertical_margin") N
+(    tools:context="com.example.nedtaylor.scramblegame.WelcomeActivity">) N
+() N
+(    <TextView) N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:text="Welcome to Scrambler!") N
+(        android:id="@+id/textView") N
+(        android:layout_alignParentTop="true") N
+(        android:layout_alignParentLeft="true") N
+(        android:layout_alignParentStart="true") N
+(        android:layout_marginLeft="112dp") N
+(        android:layout_marginStart="112dp" />) N
+() N
+(    <Button) N
+(        android:text="Help") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/button3") N
+(        android:onClick="onClick") N
+(        android:layout_alignParentBottom="true") N
+(        android:layout_centerHorizontal="true") N
+(        android:layout_marginBottom="89dp" />) N
+() N
+(    <Button) N
+(        android:text="Take a Picture") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/button4") N
+(        android:onClick="onClick") N
+(        android:layout_above="@+id/button3") N
+(        android:layout_alignLeft="@+id/button") N
+(        android:layout_alignStart="@+id/button") N
+(        android:layout_marginBottom="29dp" />) N
+() N
+(    <Button) N
+(        android:text="Send a picture") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/button2") N
+(        android:onClick="onClick") N
+(        android:layout_marginBottom="21dp") N
+(        android:layout_above="@+id/button") N
+(        android:layout_centerHorizontal="true" />) N
+() N
+(    <Button) N
+(        android:text="Play a Game") N
+(        android:layout_width="wrap_content") N
+(        android:layout_height="wrap_content") N
+(        android:id="@+id/button") N
+(        android:onClick="onClick") N
+(        android:layout_above="@+id/button4") N
+(        android:layout_marginBottom="60dp") N
+(        android:layout_alignLeft="@+id/textView") N
+(        android:layout_alignStart="@+id/textView" />) N
+(</RelativeLayout>) N
+(activity_welcome.xml) (Page 1/1) (Dec 17, 16 3:12) title
+border
+grestore
+(Printed by Theodore Taylor D'Ambrosio) rhead
+() (Saturday December 17, 2016) (20/20) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF
